@@ -1,5 +1,4 @@
 const { Pool } = require("pg");
-const limit = process.argv[3];
 const cohortName = process.argv[2];
 
 const pool = new Pool({
@@ -11,17 +10,18 @@ const pool = new Pool({
 
 pool
   .query(
-    `SELECT students.id as student_id, students.name as name, cohorts.name as cohort
-    FROM students
+    `SELECT DISTINCT teachers.name AS teacher, cohorts.name
+    FROM teachers
+    JOIN assistance_requests ON teachers.id = teacher_id
+    JOIN students ON students.id = student_id
     JOIN cohorts ON cohorts.id = cohort_id
     WHERE cohorts.name LIKE '%${cohortName}%'
-    LIMIT ${limit || 5};`
+    ORDER BY teachers.name;
+    ;`
   )
   .then((res) => {
-    res.rows.forEach((user) => {
-      console.log(
-        `${user.name} has an id of ${user.student_id} and was in the ${user.cohort} cohort`
-      );
+    res.rows.forEach((teacher) => {
+      console.log(`${teacher.name}: ${teacher.teacher}`);
     });
   })
   .catch((err) => {
